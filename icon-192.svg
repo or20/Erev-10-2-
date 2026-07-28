@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="42" fill="#111006"/>
+  <circle cx="96" cy="96" r="72" fill="none" stroke="#e7bd55" stroke-width="6"/>
+  <text x="96" y="83" text-anchor="middle" font-family="Arial, sans-serif" font-size="35" font-weight="700" fill="#f6df94">ערב</text>
+  <text x="96" y="132" text-anchor="middle" font-family="Arial, sans-serif" font-size="55" font-weight="800" fill="#e7bd55">10</text>
+</svg>

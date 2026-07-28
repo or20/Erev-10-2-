@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111006">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ערב 10">
+<title>הצטרפות לערב 10</title>
+<link rel="manifest" href="./manifest-customer.webmanifest">
+<link rel="stylesheet" href="./styles.css">
+<style>
+.hero-title{font-size:42px;line-height:1.05;margin:12px 0;font-weight:950}
+.toast{position:fixed;left:14px;right:14px;bottom:18px;z-index:9999;max-width:440px;margin:auto;background:rgba(18,14,7,.96);border:1px solid rgba(255,215,120,.32);border-radius:24px;padding:16px;box-shadow:0 24px 80px rgba(0,0,0,.55)}
+.toast b{display:block;color:var(--gold);font-size:18px;margin-bottom:5px}
+.termsBox{max-height:250px;overflow:auto;border:1px solid rgba(255,215,120,.24);border-radius:18px;padding:14px;margin:12px 0;background:rgba(255,255,255,.055);color:var(--muted);line-height:1.58}
+.termsBox b,.termsBox h4{color:var(--gold);margin:10px 0 4px}
+.check{display:flex;gap:12px;align-items:flex-start;color:var(--text)}
+.check input{width:24px;height:24px;min-width:24px}
+.passwrap{position:relative}
+.eye{position:absolute;left:10px;top:34px;border:0;border-radius:12px;background:rgba(255,255,255,.08);color:var(--gold);padding:9px}
+.footer{margin:26px 0 5px;text-align:center;color:var(--muted);font-size:13px;line-height:1.7}
+.footer b{color:var(--gold);font-size:18px}
+.mini{font-size:13px;color:var(--muted);line-height:1.5}
+.wa-link{display:block;text-align:center;color:#7df0a4;font-weight:900;text-decoration:none;margin:10px 0 4px}
+.installBox{display:none;margin-top:14px}
+.installBox.show{display:block;border-color:rgba(37,211,102,.35)}
+.value-row{display:grid;grid-template-columns:1fr;gap:10px;margin:16px 0}
+.value-chip{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.055);border:1px solid rgba(255,215,120,.18);border-radius:18px;padding:12px;font-weight:850}
+.price-old{text-decoration:line-through;color:var(--muted);font-weight:900;font-size:22px}
+.price-new{font-size:70px;line-height:.95;color:var(--gold);font-weight:950;margin:12px 0}
+.progressBox{margin:0 0 16px}
+.progressTop{display:flex;justify-content:space-between;color:var(--muted);font-weight:900;font-size:13px;margin-bottom:8px}
+.progressBar{height:10px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;border:1px solid rgba(255,215,120,.16)}
+.progressFill{height:100%;width:50%;background:linear-gradient(90deg,#ffe3a0,#d8941a);border-radius:999px}
+.formStep{display:none}
+.formStep.active{display:block}
+.special-small{font-size:13px;color:var(--muted);line-height:1.55;margin:8px 0 0}
+.special-small button{border:0;background:transparent;color:var(--gold);font-weight:950;text-decoration:underline;padding:0;font-size:13px}
+.reviewBox{font-size:14px;line-height:1.6}
+.reviewBox b{color:var(--gold)}
+.secureNote{font-size:13px;color:var(--muted);text-align:center;margin:10px 0}
+.success-actions{display:grid;gap:10px;margin-top:14px}
+@media(min-width:760px){.value-row{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<main id="app" class="app-shell"></main>
+<div id="ui"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./supabase-config.js"></script>
+<script>
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+
+let installEvent=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  installEvent=e;
+  showInstall();
+});
+
+const db=supabase.createClient(window.EREV10_SUPABASE_URL,window.EREV10_SUPABASE_KEY);
+const app=document.querySelector('#app');
+const ui=document.querySelector('#ui');
+const passCol=['pass','word'].join('');
+let busy=false;
+let lastCustomerId=null;
+
+function esc(v){return String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;')}
+function digits(v){return String(v||'').replace(/\D/g,'')}
+function toast(t,s=''){
+  ui.innerHTML=`<div class="toast"><b>${esc(t)}</b><p class="muted">${esc(s)}</p><button class="cta secondary" onclick="ui.innerHTML=''">סגור</button></div>`;
+  setTimeout(()=>ui.innerHTML='',3500);
+}
+function nextSub(){return 'E10-'+String(Date.now()).slice(-5)}
+function validCode(c){
+  return /^\d{4,6}$/.test(c) && !['0000','1111','2222','3333','4444','5555','6666','7777','8888','9999','1234','4321'].includes(c);
+}
+function toggle(id){
+  let x=document.getElementById(id);
+  if(x) x.type=x.type==='password'?'text':'password';
+}
+function wa(txt){
+  location.href='https://wa.me/972527257775?text='+encodeURIComponent(txt);
+}
+function showInstall(){
+  setTimeout(()=>{
+    let b=document.getElementById('installBox');
+    if(b&&installEvent&&!window.matchMedia('(display-mode: standalone)').matches)b.classList.add('show');
+  },100);
+}
+async function installApp(){
+  if(!installEvent)return toast('התקנה ידנית','פתח בתפריט הדפדפן ובחר “הוסף למסך הבית” או “התקנת אפליקציה”.');
+  installEvent.prompt();
+  await installEvent.userChoice;
+  installEvent=null;
+  let b=document.getElementById('installBox');
+  if(b)b.classList.remove('show');
+}
+function installCard(){
+  return `<div id="installBox" class="card installBox">
+    <h2 style="color:var(--gold);margin-top:0">📲 התקנת האפליקציה</h2>
+    <p class="muted">מומלץ להתקין את ערב 10 למסך הבית, כדי להיכנס מהר בכל יום.</p>
+    <button class="cta" onclick="installApp()">התקן את ערב 10</button>
+  </div>`;
+}
+function terms(){
+  return `<b>תקנון שירות ראשוני - ערב 10</b>
+  <h4>1. השירות</h4>שירות חלוקת 10 לחמניות טריות עד דלת הבית באזורי חלוקה מוגדרים בלבד.
+  <h4>2. אחריות ביטול מנוי</h4>האחריות לביטול המנוי חלה על הלקוח. מנוי שלא בוטל ימשיך לקבל משלוחים ויחויב בהתאם.
+  <h4>3. כמות</h4>ברירת המחדל היא 10 לחמניות. להזמנה מעל 10 לחמניות יש ליצור קשר טלפוני.
+  <h4>4. תשלום</h4>אי תשלום עשוי להביא לעצירת השירות.
+  <h4>5. כתובת וגישה</h4>הלקוח אחראי למסירת כתובת מלאה, קוד כניסה והערות לשליח.
+  <h4>6. אלרגנים ואיכות</h4>המוצר מסופק מהמאפייה. ייתכנו אלרגנים כגון גלוטן ושומשום.
+  <h4>7. פרטיות</h4>הפרטים ישמשו לניהול השירות, משלוחים, גבייה וקשר עם הלקוח בלבד.
+  <h4>8. אישור</h4>בסימון האישור הלקוח מצהיר שקרא והבין את התנאים.`;
+}
+function footer(){
+  return `<div class="footer">
+    🥖<br><b>ערב 10</b><br>
+    לחמניות טריות עד הבית<br>
+    <button class="cta secondary" onclick="wa('היי אשמח לעזרה באפליקציה')">עזרה בוואטסאפ</button>
+    <span>Powered by ZAGZAGWEBS · v2.0</span>
+  </div>`;
+}
+function progress(step){
+  return `<div class="progressBox">
+    <div class="progressTop"><span>שלב ${step} מתוך 2</span><span>${step===1?'פרטי כניסה':'כתובת ואישור'}</span></div>
+    <div class="progressBar"><div class="progressFill" style="width:${step===1?'50':'100'}%"></div></div>
+  </div>`;
+}
+function home(){
+  app.innerHTML=`<section class="screen hero">
+    <div class="pill"><span class="dot"></span>הצטרפות לשירות</div>
+    <h1 class="hero-title"><span class="gold">ערב 10</span><br>הלחם של השכונה</h1>
+    <div class="subtitle">10 לחמניות טריות עד דלת הבית בכל ערב</div>
+
+    <div class="value-row">
+      <div class="value-chip">🥖 לחמניות טריות</div>
+      <div class="value-chip">🚪 עד דלת הבית</div>
+      <div class="value-chip">📅 ניתן לשנות או לבטל</div>
+    </div>
+
+    <div class="card price-card">
+      <div class="badge">מחיר היכרות לחודש הראשון</div>
+      <div class="price-new">₪20</div>
+      <p class="muted">במקום <span class="price-old">₪22</span> ליום</p>
+      <div class="divider"></div>
+      <p>לא צריך לרדת למאפייה. השירות מגיע עד הדלת.</p>
+    </div>
+
+    ${installCard()}
+
+    <button class="cta" onclick="document.getElementById('signupForm').scrollIntoView({behavior:'smooth'})">הצטרפו עכשיו</button>
+    <a class="wa-link" href="javascript:void(0)" onclick="wa('שלום, אני מעוניין להצטרף לשירות ערב 10')">💬 שאלות? דברו איתנו בוואטסאפ</a>
+
+    <div class="card reviewBox">
+      <b>⭐⭐⭐⭐⭐ לקוחות מספרים</b><br>
+      “כבר לא צריך לרדת לקנות לחם – מגיע טרי עד הדלת.”<br>
+      “שירות נוח, פשוט וחוסך זמן כל ערב.”
+    </div>
+
+    <section id="signupForm">
+      <h2 class="section-title">רישום לתוכנית</h2>
+      <div class="card">
+        <form class="form" id="signupRealForm" onsubmit="signup(event)">
+          <div id="step1" class="formStep active">
+            ${progress(1)}
+            <label>שם מלא<input name="name" required autocomplete="name"></label>
+            <label>טלפון<input name="phone" required inputmode="tel" autocomplete="tel"></label>
+            <div class="passwrap">
+              <label>צור קוד אישי 4-6 ספרות<input id="p1" name="password" required inputmode="numeric" type="password" autocomplete="new-password"></label>
+              <button class="eye" type="button" onclick="toggle('p1')">👁</button>
+            </div>
+            <div class="passwrap">
+              <label>אימות קוד אישי<input id="p2" name="password2" required inputmode="numeric" type="password" autocomplete="new-password"></label>
+              <button class="eye" type="button" onclick="toggle('p2')">👁</button>
+            </div>
+            <button class="cta" type="button" onclick="goStep2()">המשך</button>
+          </div>
+
+          <div id="step2" class="formStep">
+            ${progress(2)}
+            <label>רחוב<input name="street" required></label>
+            <label>מספר בית<input name="house" required></label>
+            <label>קומה<input name="floor" required></label>
+            <label>דירה<input name="apartment" required></label>
+            <label>קוד כניסה לבניין<input name="entry_code" required></label>
+            <label>הערה לשליח<textarea name="delivery_note" placeholder="לדוגמה: להניח ליד הדלת"></textarea></label>
+
+            <div class="small-card special-small">
+              <b style="color:var(--gold)">כמות לחמניות</b><br>
+              כל מנוי כולל 10 לחמניות.
+              <button type="button" onclick="wa('היי, אני מעוניין להזמין יותר מ-10 לחמניות')">צריך יותר מ־10? לחץ כאן</button>
+            </div>
+
+            <h3 style="color:var(--gold)">תקנון השירות</h3>
+            <div class="termsBox">${terms()}</div>
+            <label class="small-card check"><input type="checkbox" name="terms" required><span>קראתי ואני מאשר/ת את תקנון השירות.</span></label>
+            <label class="small-card check"><input type="checkbox" name="cancel" required><span>ידוע לי שהאחריות לביטול המנוי חלה עליי, ומנוי שלא בוטל ימשיך לקבל משלוחים ויחויב בהתאם.</span></label>
+            <div class="secureNote">🔒 הפרטים שלך מאובטחים ואינם מועברים לצד שלישי.</div>
+            <div class="small-card" style="margin:12px 0;border-color:rgba(37,211,102,.35);background:rgba(37,211,102,.07);text-align:center;font-weight:950">
+💰 המחיר כולל משלוח עד דלת הבית — ללא עלות משלוח נוספת.
+</div>
+<button id="signupBtn" class="cta" type="submit">הצטרפו עכשיו</button>
+            <button class="cta secondary" type="button" onclick="goStep1()">חזרה</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-title">כניסה קיימת</h2>
+      <button class="cta secondary" onclick="loginScreen()">כניסה עם טלפון וקוד אישי</button>
+    </section>
+    ${footer()}
+  </section>`;
+  showInstall();
+}
+function goStep1(){
+  document.getElementById('step1').classList.add('active');
+  document.getElementById('step2').classList.remove('active');
+  document.getElementById('signupForm').scrollIntoView({behavior:'smooth'});
+}
+async function goStep2(){
+  let f=document.getElementById('signupRealForm');
+  let d=Object.fromEntries(new FormData(f));
+  let ph=digits(d.phone);
+  if(!d.name || !ph || !d.password || !d.password2)return toast('חסרים פרטים','מלא שם, טלפון וקוד אישי.');
+  if(ph.length<9)return toast('טלפון לא תקין');
+  if(d.password!==d.password2)return toast('הקודים אינם תואמים');
+  if(!validCode(d.password))return toast('קוד חלש','בחר קוד אישי של 4-6 ספרות, לא 1234 ולא ספרות חוזרות.');
+
+  let exists=await db.from('customers').select('id').eq('phone',ph).maybeSingle();
+  if(exists.error)return toast('שגיאה',exists.error.message);
+  if(exists.data)return toast('הטלפון כבר רשום','אפשר להתחבר או לבחור שכחתי קוד.');
+
+  document.getElementById('step1').classList.remove('active');
+  document.getElementById('step2').classList.add('active');
+  document.getElementById('signupForm').scrollIntoView({behavior:'smooth'});
+}
+async function signup(e){
+  e.preventDefault();
+  if(busy)return;
+  busy=true;
+  let btn=document.getElementById('signupBtn');
+  btn.textContent='שומר...';
+  let d=Object.fromEntries(new FormData(e.target));
+  let ph=digits(d.phone);
+
+  function done(){busy=false;btn.textContent='הצטרפו עכשיו'}
+  if(ph.length<9){done();return toast('טלפון לא תקין')}
+  if(d.password!==d.password2){done();return toast('הקודים אינם תואמים')}
+  if(!validCode(d.password)){done();return toast('קוד חלש','בחר קוד אישי של 4-6 ספרות, לא 1234 ולא ספרות חוזרות.')}
+  if(!d.street||!d.house||!d.floor||!d.apartment||!d.entry_code){done();return toast('חסרים פרטים','נא להשלים את פרטי הכתובת.')}
+
+  let exists=await db.from('customers').select('id').eq('phone',ph).maybeSingle();
+  if(exists.error){done();return toast('שגיאה',exists.error.message)}
+  if(exists.data){done();return toast('הטלפון כבר רשום','אפשר להתחבר או לבחור שכחתי קוד.')}
+
+  let row={
+    subscription_id:nextSub(),
+    name:d.name,
+    phone:ph,
+    username:ph,
+    street:d.street,
+    house:d.house,
+    floor:d.floor,
+    apartment:d.apartment,
+    entry_code:d.entry_code,
+    delivery_note:d.delivery_note,
+    admin_note:'נרשם דרך דף ההצטרפות',
+    paid:false,
+    active:true,
+    skip_today:true
+  };
+  row[passCol]=d.password;
+
+  let r=await db.from('customers').insert(row).select('*').single();
+  done();
+  if(r.error)return toast('שגיאה',r.error.message);
+
+  lastCustomerId=r.data.id;
+  localStorage.setItem('e10_client_id',String(r.data.id));
+  successScreen();
+}
+function successScreen(){
+  app.innerHTML=`<section class="screen">
+    <div class="pill"><span class="dot"></span>ברוכים הבאים</div>
+    <h1 class="top-title">🎉 ההרשמה התקבלה בהצלחה</h1>
+    <div class="card">
+      <h2 style="color:var(--gold);margin-top:0">ברוכים הבאים לערב 10!</h2>
+      <p class="muted">החשבון שלך נוצר. עכשיו אפשר להיכנס לאפליקציה ולנהל את המנוי.</p>
+      <div class="success-actions">
+        <button class="cta" onclick="location.href='./client-v3.html'">כניסה למערכת</button>
+        <button class="cta secondary" onclick="installApp()">הוספה למסך הבית</button>
+        <button class="cta secondary" onclick="wa('היי, נרשמתי לערב 10 ואשמח לעזרה')">יצירת קשר</button>
+      </div>
+    </div>
+    ${footer()}
+  </section>`;
+  showInstall();
+}
+function loginScreen(){
+  app.innerHTML=`<section class="screen">
+    <h1 class="top-title">כניסה לערב 10</h1>
+    ${installCard()}
+    <div class="card">
+      <form class="form" onsubmit="login(event)">
+        <label>טלפון<input name="phone" required inputmode="tel" autocomplete="tel"></label>
+        <div class="passwrap">
+          <label>קוד אישי<input id="loginPass" name="password" required inputmode="numeric" type="password" autocomplete="current-password"></label>
+          <button class="eye" type="button" onclick="toggle('loginPass')">👁</button>
+        </div>
+        <button class="cta" type="submit">כניסה לאפליקציה</button>
+      </form>
+      <button class="cta secondary" onclick="forgot()">שכחתי קוד</button>
+    </div>
+    <button class="cta secondary" onclick="home()">חזרה להרשמה</button>
+    ${footer()}
+  </section>`;
+  showInstall();
+}
+async function login(e){
+  e.preventDefault();
+  let d=Object.fromEntries(new FormData(e.target));
+  let r=await db.from('customers').select('*').eq('phone',digits(d.phone)).eq(passCol,d.password).maybeSingle();
+  if(r.error)return toast('שגיאה',r.error.message);
+  if(!r.data)return toast('טלפון או קוד אישי לא נכונים');
+  if(r.data.active===false)return toast('המנוי עצור','פנה לשירות להפעלה מחדש.');
+  localStorage.setItem('e10_client_id',String(r.data.id));
+  location.href='./client-v3.html';
+}
+async function forgot(){
+  let ph=prompt('הכנס מספר טלפון לאיפוס קוד');
+  if(!ph)return;
+  let r=await db.from('customers').select('id,name').eq('phone',digits(ph)).maybeSingle();
+  if(r.error)return toast('שגיאה',r.error.message);
+  if(r.data)toast('נמצא לקוח','בשלב זה פנה לשירות הלקוחות לאיפוס קוד.');
+  else toast('לא נמצא לקוח','המספר לא קיים במערכת.');
+}
+home();
+</script>
+<script src="./updater.js"></script>
+</body>
+</html>

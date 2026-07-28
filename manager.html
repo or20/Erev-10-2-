@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#111006">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ערב 10 מנהל">
+<title>ערב 10 מנהל</title>
+<link rel="manifest" href="./manifest-manager.webmanifest">
+<link rel="stylesheet" href="./styles.css">
+<style>
+body{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+input,textarea{user-select:text;-webkit-user-select:text}
+.credit{text-align:center;margin:22px 0 4px;font-size:12px}.credit a{color:var(--muted);text-decoration:none}
+.install-box{display:none;margin:14px 0}.install-box.show{display:block}
+.toast{position:fixed;left:14px;right:14px;bottom:18px;z-index:9999;max-width:440px;margin:auto;background:rgba(18,14,7,.96);border:1px solid rgba(255,215,120,.32);border-radius:24px;padding:16px;box-shadow:0 24px 80px rgba(0,0,0,.55)}
+.toast b{display:block;color:var(--gold);font-size:18px;margin-bottom:4px}
+.bakery-msg{white-space:pre-line;line-height:1.6}.bakery-state{font-weight:950;margin-bottom:12px}.manager-note{font-size:14px;line-height:1.55}
+.tabs{position:sticky;top:0;z-index:40;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:rgba(10,8,5,.94);backdrop-filter:blur(10px);border:1px solid rgba(255,215,120,.18);border-radius:20px;padding:7px;margin:10px 0 14px}
+.tabBtn{border:0;border-radius:14px;background:rgba(255,255,255,.06);color:var(--muted);font-weight:950;padding:10px 4px;font-size:12px}
+.tabBtn.on{background:linear-gradient(135deg,var(--gold),#ffe28a);color:#201500}
+.tabPane{display:none}.tabPane.on{display:block}
+.filterbar{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.filterbar button{border:1px solid rgba(255,215,120,.22);border-radius:16px;background:rgba(255,255,255,.06);color:var(--muted);font-weight:900;padding:10px 5px}
+.filterbar button.on{background:linear-gradient(135deg,var(--gold),#ffe28a);color:#201500}
+.mini-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.mini-actions a,.mini-actions button{display:block;text-align:center;border-radius:16px;border:1px solid rgba(255,215,120,.22);background:rgba(255,255,255,.06);color:var(--gold);font-weight:900;text-decoration:none;padding:10px 4px;font-size:14px}
+.problem-card{border-color:rgba(255,70,70,.38)!important;background:rgba(255,70,70,.07)!important}
+.problem-title{color:#ff9b9b;font-weight:950}.problem-pill{display:inline-block;border-radius:999px;padding:6px 10px;border:1px solid rgba(255,70,70,.38);color:#ff9b9b;font-weight:900;margin-top:7px;font-size:13px}
+.good-card{border-color:rgba(37,211,102,.38)!important;background:rgba(37,211,102,.07)!important}
+.warning-card{border-color:rgba(255,215,120,.35)!important;background:rgba(255,215,120,.07)!important}
+.bell{position:fixed;top:12px;left:12px;z-index:60;width:48px;height:48px;border-radius:999px;border:1px solid rgba(255,215,120,.32);background:rgba(18,14,7,.92);color:var(--gold);font-size:22px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.bell i{position:absolute;top:6px;right:8px;background:#ff4b4b;color:#fff;border-radius:999px;font-style:normal;font-size:11px;font-weight:950;padding:2px 6px}
+.panel{position:fixed;inset:72px 12px auto 12px;z-index:70;max-width:520px;margin:auto;background:rgba(18,14,7,.98);border:1px solid rgba(255,215,120,.34);border-radius:24px;padding:16px;box-shadow:0 24px 80px rgba(0,0,0,.58)}
+.panel h3{color:var(--gold);margin:0 0 10px}
+.notice{border:1px solid rgba(255,215,120,.18);border-radius:16px;padding:10px;margin:8px 0;background:rgba(255,255,255,.055);font-size:14px;line-height:1.45}
+.quickActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.quickActions button,.quickActions a{display:block;text-align:center;border-radius:18px;border:1px solid rgba(255,215,120,.22);background:rgba(255,255,255,.06);color:var(--gold);font-weight:950;text-decoration:none;padding:13px 8px}
+.client-row{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.status{display:inline-block;min-width:74px;text-align:center;border-radius:999px;padding:7px 10px;font-weight:950;font-size:12px}
+.status.ok{background:rgba(37,211,102,.13);color:#7df0a4;border:1px solid rgba(37,211,102,.35)}
+.status.bad{background:rgba(255,70,70,.12);color:#ff9b9b;border:1px solid rgba(255,70,70,.35)}
+.status.wait{background:rgba(255,215,120,.10);color:var(--gold);border:1px solid rgba(255,215,120,.32)}
+.smallLine{display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,215,120,.09);padding:8px 0;color:var(--muted);font-size:13px}.smallLine b{color:var(--gold)}
+.deliveryProgress{height:12px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin:12px 0}.deliveryProgress>div{height:100%;background:linear-gradient(90deg,var(--gold),#ffe28a);border-radius:999px}.delivery-list{display:grid;gap:10px;margin-top:12px}.delivery-item{border:1px solid rgba(255,215,120,.16);border-radius:18px;padding:12px;background:rgba(255,255,255,.045)}.delivery-item strong{color:var(--gold)}
+@media(max-width:420px){.filterbar{grid-template-columns:repeat(2,1fr)}.quickActions{grid-template-columns:1fr}.client-row{display:block}.status{margin-top:8px}}
+
+.installFab{position:fixed;right:14px;bottom:14px;z-index:55;border:1px solid rgba(255,215,120,.32);border-radius:999px;background:rgba(18,14,7,.94);color:var(--gold);font-weight:950;padding:12px 16px;box-shadow:0 14px 45px rgba(0,0,0,.42)}
+.installHelp{font-size:13px;color:var(--muted);line-height:1.5;margin-top:8px}
+</style>
+</head>
+<body>
+<main id="manager-app" class="app-shell"></main><div id="ui"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./supabase-config.js"></script>
+<script>
+if(sessionStorage.getItem('e10ok')!=='1'){
+  let c=prompt('קוד כניסה לניהול');
+  if(c!==['1','0','1','0'].join('')){
+    document.querySelector('#manager-app').innerHTML='<section class="screen"><h1 class="top-title">אין גישה</h1><div class="card">קוד לא נכון</div></section>';
+    throw new Error('locked');
+  }
+  sessionStorage.setItem('e10ok','1');
+}
+if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(function(){});
+let installEvent=null,bakeryTimer=null,currentFilter='all',activeTab='dash',lastSync=new Date(),notices=[],searchQuery='';
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvent=e;showInstall()});window.addEventListener('appinstalled',()=>{localStorage.setItem('e10_manager_installed','1');toast('האפליקציה הותקנה','מנהל ערב 10 נוסף למסך הבית.');render()});
+
+const db=supabase.createClient(window.EREV10_SUPABASE_URL,window.EREV10_SUPABASE_KEY);
+const app=document.querySelector('#manager-app'),ui=document.querySelector('#ui');
+let customers=[],bakeryOrder=null;
+const secretCol=['pass','word'].join('');
+
+function safe(v){return String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;')}
+function digits(v){return String(v||'').replace(/\D/g,'')}
+function todayLocal(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function address(c){return `${c.street||''} ${c.house||''}, קומה ${c.floor||'-'}, דירה ${c.apartment||'-'}`}
+function active(){return customers.filter(c=>c.active!==false)}
+function paused(){return customers.filter(c=>c.active===false)}
+function skipped(){return active().filter(c=>c.skip_today)}
+function delivery(){return active().filter(c=>!c.skip_today)}
+function unpaid(){return active().filter(c=>!c.paid)}
+function problems(){return customers.filter(c=>c.delivery_status==='בעיה')}
+function buns(){return delivery().length*10}
+function delivered(){return customers.filter(c=>c.delivery_status==='נמסר')}
+function openDeliveries(){return delivery().filter(c=>!c.delivery_status||c.delivery_status==='ממתין')}
+function expectedIncome(){return delivery().length*22}
+function monthlyIncome(){return active().length*22*22}
+function clientLink(){return location.origin+location.pathname.replace('manager.html','client-v3.html')}
+function nowMin(){let d=new Date();return d.getHours()*60+d.getMinutes()}
+function countdownTo(t){let n=nowMin(),left=Math.max(0,t-n),h=Math.floor(left/60),m=left%60;if(left<=0)return'';return`${h?h+' שעות ו־':''}${m} דקות`}
+function countdownToHour(hour){let d=new Date(),target=new Date();target.setHours(hour,0,0,0);let left=Math.max(0,target-d),h=Math.floor(left/3600000),m=Math.floor((left%3600000)/60000);return left<=0?'הזמן הגיע':`${h?h+' שעות ו־':''}${m} דקות`}
+function nextId(){let nums=customers.map(c=>Number(String(c.subscription_id||'').replace('E10-',''))||0).filter(Boolean).sort((a,b)=>a-b);let n=1;for(let x of nums){if(x===n)n++;else if(x>n)break}return'E10-'+String(n).padStart(4,'0')}
+function timeAgo(){let s=Math.max(0,Math.floor((new Date()-lastSync)/1000));if(s<10)return 'עכשיו';if(s<60)return `לפני ${s} שניות`;let m=Math.floor(s/60);return `לפני ${m} דקות`}
+
+function toast(t,s){ui.innerHTML=`<div class="toast"><b>${safe(t)}</b><p class="muted">${safe(s||'')}</p><button class="cta secondary" onclick="ui.innerHTML=''">סגור</button></div>`;setTimeout(()=>ui.innerHTML='',3200)}
+function copy(t,m){navigator.clipboard?.writeText(t);toast('הועתק',m||'')}
+function addNotice(t,s){notices.unshift({t,s,ts:new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})});notices=notices.slice(0,12)}
+function bell(){let n=problems().length+unpaid().length+(bakeryOrder&&bakeryOrder.status!=='מוכנה'?1:0);return `<button class="bell" onclick="openNotices()">🔔${n?`<i>${n}</i>`:''}</button>`}
+function openNotices(){
+  let auto=[
+    ...problems().map(c=>({t:'בעיה במשלוח',s:`${c.name} · ${address(c)}`})),
+    ...unpaid().slice(0,5).map(c=>({t:'לקוח לא שילם',s:`${c.name} · ${c.subscription_id}`})),
+  ];
+  if(bakeryOrder&&bakeryOrder.status!=='מוכנה')auto.unshift({t:'מאפייה',s:`סטטוס הזמנה: ${bakeryOrder.status||'נשלחה'}`});
+  let all=[...auto,...notices];
+  ui.innerHTML=`<div class="panel"><h3>🔔 התראות מנהל</h3>${all.length?all.map(n=>`<div class="notice"><b>${safe(n.t)}</b><br><span class="muted">${safe(n.s||'')}</span>${n.ts?`<br><small class="muted">${n.ts}</small>`:''}</div>`).join(''):'<p class="muted">אין התראות חדשות כרגע.</p>'}<button class="cta secondary" onclick="ui.innerHTML='';notices=[];render()">סגור</button></div>`;
+}
+
+function bakeryOrderText(){
+  return `שלום, להערב צריך להכין ${buns()} לחמניות עבור ערב 10.
+לקוחות למשלוח: ${delivery().length}
+לקוחות פעילים: ${active().length}
+ביטלו היום: ${skipped().length}
+לא שילמו: ${unpaid().length}`;
+}
+function showBakeryOrder(){let msg=bakeryOrder?.message||bakeryOrderText();ui.innerHTML=`<div class="toast"><b>מה נשלח למאפייה</b><p class="muted bakery-msg">${safe(msg)}</p><button class="cta" onclick="copyBakeryOrder()">העתק הודעה</button><button class="cta secondary" onclick="ui.innerHTML=''">סגור</button></div>`}
+function copyBakeryOrder(){navigator.clipboard?.writeText(bakeryOrder?.message||bakeryOrderText());toast('הועתק','ההודעה למאפייה הועתקה.')}
+async function load(){
+  app.innerHTML='<section class="screen"><h1 class="top-title">טוען לקוחות...</h1></section>';
+  let r=await db.from('customers').select('*').order('id',{ascending:true});
+  if(r.error){app.innerHTML=`<section class="screen"><h1 class="top-title">שגיאה</h1><div class="card">${safe(r.error.message)}</div></section>`;return}
+  customers=r.data||[];
+  let b=await db.from('bakery_orders').select('*').eq('order_date',todayLocal()).maybeSingle();
+  bakeryOrder=b.error?null:b.data;
+  lastSync=new Date();
+  render();
+}
+function isStandalone(){return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true}
+function installBox(){
+  if(isStandalone()||localStorage.getItem('e10_manager_installed')==='1')return '';
+  return `<div id="installBox" class="card install-box">
+    <h2 style="color:var(--gold);margin-top:0">📲 התקנת אפליקציית מנהל</h2>
+    <p class="muted">מומלץ להתקין את מנהל ערב 10 למסך הבית כדי להיכנס מהר בלי לחפש קישור.</p>
+    <button class="cta" onclick="installApp()">התקן אפליקציה</button>
+    <div class="installHelp">באנדרואיד לבחור “התקנה” ולא “יצירת קיצור דרך”. באייפון: שיתוף → הוסף למסך הבית.</div>
+  </div>`;
+}
+function installFab(){
+  if(isStandalone()||localStorage.getItem('e10_manager_installed')==='1')return '';
+  return `<button id="installFab" class="installFab" onclick="installApp()">📲 התקן</button>`;
+}
+function showInstall(){
+  setTimeout(()=>{
+    if(isStandalone())return;
+    let b=document.getElementById('installBox');
+    if(b)b.classList.add('show');
+  },100);
+}
+async function installApp(){
+  if(isStandalone()){localStorage.setItem('e10_manager_installed','1');render();return}
+  if(!installEvent){
+    toast('התקנה ידנית','באנדרואיד פתח את תפריט הדפדפן ובחר “התקנה”. באייפון: שיתוף → הוסף למסך הבית.');
+    return;
+  }
+  installEvent.prompt();
+  let choice=await installEvent.userChoice;
+  installEvent=null;
+  if(choice&&choice.outcome==='accepted'){
+    localStorage.setItem('e10_manager_installed','1');
+    toast('האפליקציה נוספה','מנהל ערב 10 נוסף למסך הבית.');
+  }else{
+    toast('ההתקנה בוטלה','אפשר להתקין בהמשך דרך כפתור ההתקנה.');
+  }
+  render();
+}
+
+function setTab(t){activeTab=t;render()}
+function tabs(){
+  const items=[['dash','📊','לוח'],['customers','👥','לקוחות'],['deliveries','🚗','שליח'],['bakery','🥖','מאפייה'],['tools','⚙️','כלים']];
+  return `<div class="tabs">${items.map(([k,i,t])=>`<button class="tabBtn ${activeTab===k?'on':''}" onclick="setTab('${k}')">${i}<br>${t}</button>`).join('')}</div>`;
+}
+function render(){
+  let u=unpaid().length,s=skipped().length,p=problems().length;
+  app.innerHTML=`${bell()}${installFab()}<section class="screen">
+    <h1 class="top-title">ניהול ערב 10</h1>
+    <div class="small-card" style="margin-bottom:10px;font-weight:900">${p?'🔴 '+p+' בעיות דורשות טיפול':s?'🟡 '+s+' ביטלו להיום':u?'🟠 '+u+' לא שילמו':'🟢 המערכת מוכנה לערב'}</div>
+    <p class="muted" style="text-align:center;font-size:12px">עודכן ${timeAgo()}</p>
+    ${tabs()}
+    ${installBox()}
+
+    <div class="tabPane ${activeTab==='dash'?'on':''}">
+      ${dashPane()}
+    </div>
+
+    <div class="tabPane ${activeTab==='customers'?'on':''}">
+      ${customersPane()}
+    </div>
+
+    <div class="tabPane ${activeTab==='deliveries'?'on':''}">
+      ${deliveriesPane()}
+    </div>
+
+    <div class="tabPane ${activeTab==='bakery'?'on':''}">
+      ${bakeryStatusCard()}
+      ${bakeryCard()}
+    </div>
+
+    <div class="tabPane ${activeTab==='tools'?'on':''}">
+      ${toolsPane()}
+    </div>
+
+    <div class="credit"><a href="https://share.google/HUoheAjuVnUKozsP8">מבית zagzagwebs</a></div>
+    <div class="muted" style="font-size:12px;text-align:center;margin-top:8px">גרסה 2.9 · מנהל · שליח · מאפייה · סנכרון</div>
+  </section>`;
+  filterCustomers(searchQuery);
+  showInstall();
+  startBakeryTimer();
+}
+function deliveriesPane(){
+  let total=delivery().length,done=delivered().filter(c=>!c.skip_today).length,open=Math.max(0,total-done),pct=total?Math.round(done/total*100):0;
+  let problemRows=problems();
+  return `<div class="card">
+    <h2 style="color:var(--gold);margin-top:0">🚗 מעקב חלוקה להיום</h2>
+    <div class="stats">
+      <div class="stat"><span>סה״כ משלוחים</span><strong>${total}</strong></div>
+      <div class="stat"><span>נמסרו</span><strong>${done}</strong></div>
+      <div class="stat"><span>נשארו</span><strong>${open}</strong></div>
+      <div class="stat"><span>בעיות</span><strong>${problemRows.length}</strong></div>
+    </div>
+    <div class="deliveryProgress"><div style="width:${pct}%"></div></div>
+    <p class="muted" style="text-align:center">${pct}% מהחלוקה הושלמו</p>
+    <div class="quickActions">
+      <a href="./courier.html">פתח מסך שליח</a>
+      <button onclick="exportToday()">העתק מסלול</button>
+      <button onclick="load()">רענן סטטוסים</button>
+      <button onclick="setTab('customers');setFilter('problems')">הצג בעיות</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2 style="color:var(--gold);margin-top:0">משלוחים שטרם הסתיימו</h2>
+    <div class="delivery-list">${delivery().filter(c=>c.delivery_status!=='נמסר').map(c=>`<div class="delivery-item"><strong>${safe(c.name)}</strong><br><span class="muted">${safe(address(c))}</span><br><span class="status ${c.delivery_status==='בעיה'?'bad':'wait'}">${safe(c.delivery_status||'ממתין')}</span></div>`).join('')||'<div class="small-card good-card">✅ כל המשלוחים הושלמו</div>'}</div>
+  </div>`;
+}
+
+function dashPane(){
+  return `<div class="stats">
+    <div class="stat"><span>לקוחות פעילים</span><strong>${active().length}</strong></div>
+    <div class="stat"><span>משלוחים היום</span><strong>${delivery().length}</strong></div>
+    <div class="stat"><span>לחמניות</span><strong>${buns()}</strong></div>
+    <div class="stat"><span>בעיות</span><strong>${problems().length}</strong></div>
+  </div>
+  <div class="stats" style="margin-top:12px">
+    <div class="stat"><span>ביטלו היום</span><strong>${skipped().length}</strong></div>
+    <div class="stat"><span>לא שילמו</span><strong>${unpaid().length}</strong></div>
+    <div class="stat"><span>נמסרו</span><strong>${delivered().length}</strong></div>
+    <div class="stat"><span>פתוחים</span><strong>${openDeliveries().length}</strong></div>
+    <div class="stat"><span>צפי יומי</span><strong>₪${expectedIncome()}</strong></div>
+    <div class="stat"><span>צפי חודשי</span><strong>₪${monthlyIncome()}</strong></div>
+  </div>
+  ${problemsCard()}
+  <div class="quickActions">
+    <button onclick="setTab('customers');setFilter('delivery')">לקוחות למשלוח</button>
+    <button onclick="setTab('customers');setFilter('problems')">בעיות</button>
+    <button onclick="setTab('customers');setFilter('unpaid')">לא שילמו</button>
+    <button onclick="showBakeryOrder()">הודעה למאפייה</button>
+  </div>`;
+}
+function customersPane(){
+  return `<button class="cta secondary" onclick="openForm()">➕ הוסף לקוח</button>
+  <h2 class="section-title">לקוחות</h2>
+  <input placeholder="חיפוש לקוח" value="${safe(searchQuery)}" oninput="searchQuery=this.value;filterCustomers(this.value)" id="searchBox">
+  <div class="filterbar">${filterBtn('all','כולם')}${filterBtn('delivery','למשלוח')}${filterBtn('problems','בעיות')}${filterBtn('skipped','ביטלו')}${filterBtn('unpaid','לא שילמו')}${filterBtn('paused','מוקפאים')}</div>
+  <div id="customers-list" class="grid" style="margin-top:16px"></div>`;
+}
+function toolsPane(){
+  return `${installBox()}<div class="card">
+    <h2 style="color:var(--gold);margin-top:0">קישורים מהירים</h2>
+    <div class="quickActions">
+      <a href="./courier.html">פתח שליח</a>
+      <a href="./client-v3.html">פתח לקוח</a>
+      <a href="./bakery.html">פתח מאפייה</a>
+      <button onclick="load()">רענן נתונים</button>
+      <button onclick="copy(clientLink(),'קישור לקוח הועתק')">העתק קישור לקוח</button>
+      <button onclick="exportToday()">ייצוא משלוחים</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2 style="color:var(--gold);margin-top:0">סיכום מהיר</h2>
+    <div class="smallLine"><span>לקוחות פעילים</span><b>${active().length}</b></div>
+    <div class="smallLine"><span>משלוחים היום</span><b>${delivery().length}</b></div>
+    <div class="smallLine"><span>לחמניות</span><b>${buns()}</b></div>
+    <div class="smallLine"><span>צפי יומי</span><b>₪${expectedIncome()}</b></div>
+  </div>`;
+}
+function exportToday(){
+  let text=delivery().map((c,i)=>`${i+1}. ${c.name} · ${c.phone||''} · ${address(c)} · ${c.delivery_note||''}`).join('\n');
+  copy(text,'רשימת המשלוחים הועתקה');
+}
+
+function fmt(t){if(!t)return'—';return new Date(t).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})}
+function bakeryStatusCard(){
+  let o=bakeryOrder;
+  if(!o)return`<div class="card" style="margin:16px 0"><h2 style="color:var(--gold);margin-top:0">🥖 התקדמות מאפייה</h2><div class="small-card bakery-state">ממתין להזמנה</div><p class="muted">בשעה 13:00 תיווצר הזמנה למאפייה.</p></div>`;
+  let cls=o.status==='מוכנה'||o.status==='התקבלה'?'good-card':'warning-card';
+  return`<div class="card ${cls}" style="margin:16px 0"><h2 style="color:var(--gold);margin-top:0">🥖 התקדמות מאפייה</h2><div class="small-card bakery-state">${o.status==='מוכנה'?'✅ ההזמנה מוכנה':o.status==='התקבלה'?'🟢 המאפייה קיבלה את ההזמנה':'🔔 נשלח למאפייה — ממתין לאישור'}</div><div class="stats" style="margin:12px 0"><div class="stat"><span>לחמניות</span><strong>${o.buns_count}</strong></div><div class="stat"><span>לקוחות</span><strong>${o.customers_count}</strong></div></div><p class="muted">נשלח: ${fmt(o.sent_at)} · התקבל: ${fmt(o.received_at)} · מוכן: ${fmt(o.ready_at)}</p>${o.status==='התקבלה'?`<p class="muted">נותרו עד 18:00: <b>${countdownToHour(18)}</b></p>`:''}</div>`;
+}
+function problemsCard(){
+  let p=problems();
+  if(!p.length)return'';
+  return`<div class="card problem-card" style="margin:16px 0"><h2 style="color:#ff9b9b;margin-top:0">🔴 בעיות היום</h2>${p.map(c=>`<div class="small-card" style="margin-top:10px"><b>${safe(c.name)}</b><br><span class="muted">${safe(c.subscription_id)} · ${safe(address(c))}</span>${problemBlock(c)}</div>`).join('')}</div>`;
+}
+function problemBlock(c){
+  if(c.delivery_status!=='בעיה')return'';
+  return`<div class="small-card problem-card" style="margin-top:10px"><div class="problem-title">🔴 בעיה במשלוח</div><div class="muted">סיבה: ${safe(c.delivery_problem_reason||'בעיה')}</div>${c.delivery_problem_time?`<div class="muted">שעה: ${safe(c.delivery_problem_time)}</div>`:''}${c.delivery_problem_note?`<div class="muted">הערה: ${safe(c.delivery_problem_note)}</div>`:''}<button class="cta secondary" style="margin-top:10px" onclick="markProblemHandled(${c.id})">סמן טופל</button></div>`;
+}
+async function markProblemHandled(id){
+  let r=await db.from('customers').update({delivery_status:null,delivery_problem_reason:null,delivery_problem_note:null,delivery_problem_time:null,delivery_handled_at:new Date().toISOString()}).eq('id',id);
+  if(r.error){toast('שגיאה',r.error.message);return}
+  addNotice('בעיה טופלה','הבעיה סומנה כטופלה.');
+  toast('טופל','הבעיה סומנה כטופלה.');
+  await load();
+}
+function filterBtn(k,t){return`<button class="${currentFilter===k?'on':''}" onclick="setFilter('${k}')">${t}</button>`}
+function setFilter(k){currentFilter=k;activeTab='customers';render()}
+async function sendBakeryOrder(){
+  let row={order_date:todayLocal(),status:'נשלחה',buns_count:buns(),customers_count:delivery().length,active_count:active().length,skipped_count:skipped().length,unpaid_count:unpaid().length,message:bakeryOrderText(),sent_at:new Date().toISOString(),updated_at:new Date().toISOString()};
+  let r=await db.from('bakery_orders').upsert(row,{onConflict:'order_date'}).select('*').single();
+  if(r.error){toast('שגיאה בשליחה',r.error.message);return}
+  bakeryOrder=r.data;addNotice('הזמנה נשלחה למאפייה',`${buns()} לחמניות · ${delivery().length} לקוחות`);toast('נשלח למאפייה','ההזמנה נשמרה והמאפייה יכולה לראות אותה.');render();
+}
+
+function bakeryCard(){
+  let n=nowMin(),phase='',note='';
+  if(n<720){phase=`<div class="small-card bakery-state">🟢 פתוח לשינויים</div>`;note=`<p id="bakeryNote" class="muted manager-note">ניתן לבצע שינויים עד <b>12:00</b>.<br>נותרו ${countdownTo(720)} לשינויים.<br>בשעה <b>13:00</b> ההזמנה תישלח אוטומטית למאפייה.</p>`}
+  else if(n<780){phase=`<div class="small-card bakery-state">🟠 ההזמנה נסגרה</div>`;note=`<p id="bakeryNote" class="muted manager-note">השינויים נסגרו ב־<b>12:00</b>.<br>נותרו ${countdownTo(780)} עד שליחה אוטומטית ב־<b>13:00</b>.</p>`}
+  else{phase=`<div class="small-card bakery-state">🔵 נשלח למאפייה אוטומטית</div>`;note=`<p class="muted manager-note">ההזמנה ננעלה ונשלחה למאפייה אוטומטית בשעה <b>13:00</b>.</p>`}
+  return`<div class="card" style="margin:16px 0"><h2 style="color:var(--gold);margin-top:0">🥖 סטטוס הזמנה</h2>${phase}${note}<div class="stats" style="margin:12px 0"><div class="stat"><span>לקוחות למשלוח</span><strong>${delivery().length}</strong></div><div class="stat"><span>לחמניות</span><strong>${buns()}</strong></div></div><button class="cta" onclick="showBakeryOrder()">מה נשלח למאפייה</button><button class="cta secondary" onclick="sendBakeryOrder()">${bakeryOrder?'עדכן ושלח מחדש':'שלח עכשיו למאפייה'}</button></div>`;
+}
+function startBakeryTimer(){clearInterval(bakeryTimer);bakeryTimer=setInterval(load,30000)}
+function filteredRows(q){
+  q=String(q||'').trim();
+  let rows=customers.filter(c=>(c.name||'').includes(q)||(c.phone||'').includes(q)||(c.subscription_id||'').includes(q)||address(c).includes(q)||(c.username||'').includes(q));
+  if(currentFilter==='paused')rows=rows.filter(c=>c.active===false);
+  if(currentFilter==='delivery')rows=rows.filter(c=>c.active!==false&&!c.skip_today);
+  if(currentFilter==='problems')rows=rows.filter(c=>c.delivery_status==='בעיה');
+  if(currentFilter==='skipped')rows=rows.filter(c=>c.active!==false&&c.skip_today);
+  if(currentFilter==='unpaid')rows=rows.filter(c=>c.active!==false&&!c.paid);
+  return rows;
+}
+function filterCustomers(q){
+  let list=document.querySelector('#customers-list');
+  if(!list)return;
+  let rows=filteredRows(q);
+  list.innerHTML=rows.map(c=>card(c)).join('')||'<div class="small-card">אין לקוחות להצגה</div>';
+}
+function card(c){
+  let phone=digits(c.phone),wa=phone?`https://wa.me/972${phone.replace(/^0/,'')}`:'#',waze=`https://waze.com/ul?q=${encodeURIComponent(address(c))}`,p=c.delivery_status==='בעיה';
+  return`<div class="small-card ${p?'problem-card':''}"><div class="client-row"><div><b>${safe(c.name)}</b><br><span class="muted">${safe(c.subscription_id)} · ${safe(address(c))}</span><br><span class="muted">${safe(c.phone||'')}</span>${c.active===false?'<br><span style="color:#ff9b9b">מנוי עצור</span>':''}${p?`<br><span class="problem-pill">🔴 ${safe(c.delivery_problem_reason||'בעיה')}</span>`:''}</div><span class="status ${p?'bad':c.active===false?'bad':c.skip_today?'wait':c.paid?'ok':'bad'}">${p?'בעיה':c.active===false?'עצור':c.skip_today?'היום לא':c.paid?'שולם':'לא שולם'}</span></div>${problemBlock(c)}<div class="grid" style="grid-template-columns:1fr 1fr;margin-top:12px"><button class="cta secondary" style="font-size:16px;padding:12px;margin:0" onclick="openForm(${c.id})">ערוך</button><button class="cta secondary" style="font-size:16px;padding:12px;margin:0" onclick="togglePaid(${c.id})">${c.paid?'לא שולם':'שולם'}</button><button class="cta secondary" style="font-size:16px;padding:12px;margin:0" onclick="toggleSkip(${c.id})">${c.skip_today?'בטל היום לא':'היום לא'}</button><button class="cta secondary" style="font-size:16px;padding:12px;margin:0" onclick="copy('${clientLink()}','קישור לקוח הועתק')">קישור</button></div><div class="mini-actions"><a href="tel:${safe(c.phone||'')}">חיוג</a><a href="${wa}" target="_blank">ווטסאפ</a><a href="${waze}" target="_blank">Waze</a><button onclick="copy('${safe(address(c))}','כתובת הועתקה')">העתק כתובת</button></div></div>`;
+}
+function fields(c={}){
+  return`<label>שם מלא<input name="name" required value="${safe(c.name)}"></label><label>טלפון<input name="phone" value="${safe(c.phone)}"></label><label>שם משתמש<input name="username" required value="${safe(c.username)}"></label><label>קוד אישי<input name="pin" required value="${safe(c[secretCol])}"></label><label>רחוב<input name="street" value="${safe(c.street)}"></label><label>מספר בית<input name="house" value="${safe(c.house)}"></label><label>קומה<input name="floor" value="${safe(c.floor)}"></label><label>דירה<input name="apartment" value="${safe(c.apartment)}"></label><label>קוד כניסה<input name="entry_code" value="${safe(c.entry_code)}"></label><label>הערה לשליח<textarea name="delivery_note">${safe(c.delivery_note)}</textarea></label><label>הערת מנהל<textarea name="admin_note">${safe(c.admin_note)}</textarea></label>`;
+}
+function openForm(id=''){
+  let c=customers.find(x=>x.id===id),m=document.createElement('div');
+  m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:10000;padding:22px;overflow:auto;direction:rtl';
+  m.innerHTML=`<div class="card" style="max-width:520px;margin:0 auto"><h1 class="top-title">${c?'עריכת לקוח':'הוספת לקוח'}</h1><form class="form" onsubmit="saveForm(event,'${id}')">${fields(c||{})}<label class="small-card" style="display:flex;gap:12px;align-items:center;color:var(--text)"><input type="checkbox" name="paid" ${c?.paid?'checked':''} style="width:26px;height:26px;min-width:26px"> שולם</label><label class="small-card" style="display:flex;gap:12px;align-items:center;color:var(--text)"><input type="checkbox" name="active" ${c?(c.active!==false?'checked':''):'checked'} style="width:26px;height:26px;min-width:26px"> מנוי פעיל</label><button class="cta" type="submit">שמור</button>${c?`<button class="cta secondary" type="button" onclick="deleteCustomer(${c.id})">מחק לקוח</button>`:''}<button class="cta secondary" type="button" onclick="this.closest('[style*=fixed]').remove()">סגור</button></form></div>`;
+  document.body.appendChild(m);
+}
+async function saveForm(e,id){
+  e.preventDefault();
+  let d=Object.fromEntries(new FormData(e.target));
+  let row={name:d.name,phone:d.phone,username:d.username,street:d.street,house:d.house,floor:d.floor,apartment:d.apartment,entry_code:d.entry_code,delivery_note:d.delivery_note,admin_note:d.admin_note,paid:!!d.paid,active:!!d.active};
+  row[secretCol]=d.pin;
+  let r;
+  if(id)r=await db.from('customers').update(row).eq('id',Number(id));
+  else{row.subscription_id=nextId();row.skip_today=false;r=await db.from('customers').insert(row)}
+  if(r.error){alert(r.error.message);return}
+  document.querySelector('[style*=fixed]')?.remove();
+  addNotice('לקוח נשמר',d.name);
+  await load();
+}
+async function deleteCustomer(id){
+  if(!confirm('למחוק את הלקוח?'))return;
+  let r=await db.from('customers').delete().eq('id',id);
+  if(r.error)alert(r.error.message);
+  addNotice('לקוח נמחק','הלקוח נמחק מהמערכת.');
+  await load();
+}
+async function togglePaid(id){let c=customers.find(x=>x.id===id);let r=await db.from('customers').update({paid:!c.paid}).eq('id',id);if(r.error)return toast('שגיאה',r.error.message);addNotice('תשלום עודכן',c.name);await load()}
+async function toggleSkip(id){let c=customers.find(x=>x.id===id);let r=await db.from('customers').update({skip_today:!c.skip_today}).eq('id',id);if(r.error)return toast('שגיאה',r.error.message);addNotice('סטטוס הזמנה עודכן',c.name);await load()}
+window.addEventListener('online',()=>{addNotice('חזרת לאינטרנט','הנתונים מסתנכרנים.');load()});
+window.addEventListener('offline',()=>addNotice('אין חיבור לאינטרנט','לא לבצע שינויים עד שהחיבור חוזר.'));
+load();
+</script>
+<script src="./updater.js"></script>
+</body>
+</html>
